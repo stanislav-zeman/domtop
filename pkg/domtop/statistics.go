@@ -43,7 +43,7 @@ func (dt *Domtop) diskStats() (stats []statistics.Disk, err error) {
 }
 
 func (dt *Domtop) interfaceStats() (stats []statistics.Interface, err error) {
-	addresses, err := dt.domain.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT)
+	addresses, err := dt.domain.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE)
 	if err != nil {
 		err = fmt.Errorf("could not retrieve domain interface addresses: %v", err)
 		return
