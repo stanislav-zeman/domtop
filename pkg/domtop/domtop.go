@@ -19,50 +19,32 @@ type Domtop struct {
 }
 
 func New(cfg config.Config, exporterChan chan<- statistics.Serializable) (domtop *Domtop, err error) {
+	slog.Info("connecting to libvirt hypervisor", "hypervisorURL", cfg.HypervisorURL)
 	connection, err := libvirt.NewConnect(cfg.HypervisorURL)
 	if err != nil {
 		err = fmt.Errorf("could not connect to hypervisor: %v", err)
 		return
 	}
 
-	slog.Info("libvirt connection established", "component", "domtop")
-	domains, err := connection.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+	domain, err := connection.LookupDomainByName(cfg.DomainName)
 	if err != nil {
+		err = fmt.Errorf("could not find specified domain '%s': %v", cfg.DomainName, err)
 		return
 	}
 
+	connection.DomainEventGraphicsRegister(domain, domtop.GraphicsCallback)
+	connection.DomainEventLifecycleRegister(domain, domtop.LifecycleCallback)
+	connection.DomainEventRebootRegister(domain, domtop.RebootCallback)
 	domtop = &Domtop{
 		libvirt:      connection,
+		domain:       domain,
 		refreshTimer: time.NewTicker(cfg.RefreshPeriod),
 		exporterChan: exporterChan,
 	}
-	for _, domain := range domains {
-		name, err := domain.GetName()
-		if err == nil {
-			slog.Error("could not get domain name: %v", err)
-			continue
-		}
-
-		if name == cfg.DomainName {
-			domtop.domain = &domain
-			continue
-		}
-
-		domain.Free()
-	}
-
-	if domtop.domain == nil {
-		err = fmt.Errorf("could not find specified domain '%s'", cfg.DomainName)
-		return
-	}
-
-	connection.DomainEventGraphicsRegister(domtop.domain, domtop.GraphicsCallback)
-	connection.DomainEventLifecycleRegister(domtop.domain, domtop.LifecycleCallback)
-	connection.DomainEventRebootRegister(domtop.domain, domtop.RebootCallback)
 	return
 }
 
-func (dt *Domtop) Run(ctx context.Context) error {
+func (dt *Domtop) Run(ctx context.Context) {
 	slog.Info("started domtop")
 	for {
 		select {
@@ -71,7 +53,7 @@ func (dt *Domtop) Run(ctx context.Context) error {
 
 		case <-ctx.Done():
 			dt.Close()
-			return nil
+			return
 		}
 	}
 }
