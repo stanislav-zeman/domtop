@@ -54,6 +54,9 @@ func New(config Config, exporterChan chan<- statistics.Serializable) (domtop *Do
 		return
 	}
 
+	connection.DomainEventGraphicsRegister(domtop.domain, domtop.GraphicsCallback)
+	connection.DomainEventLifecycleRegister(domtop.domain, domtop.LifecycleCallback)
+	connection.DomainEventRebootRegister(domtop.domain, domtop.RebootCallback)
 	return
 }
 
@@ -94,7 +97,7 @@ func (dt *Domtop) refresh() {
 		return
 	}
 
-	stats := statistics.ResourceUsage{
+	stats := statistics.Usage{
 		CPUs:       cpuStats,
 		Disks:      diskStats,
 		Interfaces: interfaceStats,

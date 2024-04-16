@@ -8,27 +8,24 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-func (dt *Domtop) cpuStats() (stats statistics.CPUs, err error) {
+func (dt *Domtop) cpuStats() (stats []statistics.CPU, err error) {
 	domainCPUStats, err := dt.domain.GetCPUStats(-1, 1, 0)
 	if err != nil {
 		return
 	}
 
-	cpuStats := make([]statistics.CPU, 0, len(domainCPUStats))
+	stats = make([]statistics.CPU, 0, len(domainCPUStats))
 	for _, cpuStat := range domainCPUStats {
 		cpuStat := statistics.CPU{
 			Time: cpuStat.CpuTime,
 		}
-		cpuStats = append(cpuStats, cpuStat)
+		stats = append(stats, cpuStat)
 	}
 
-	stats = statistics.CPUs{
-		CPUs: cpuStats,
-	}
 	return
 }
 
-func (dt *Domtop) diskStats() (stats statistics.Disks, err error) {
+func (dt *Domtop) diskStats() (stats []statistics.Disk, err error) {
 	blockStats, err := dt.domain.BlockStats("")
 	if err != nil {
 		err = fmt.Errorf("could not retrieve domain disk stats: %v", err)
@@ -36,25 +33,23 @@ func (dt *Domtop) diskStats() (stats statistics.Disks, err error) {
 	}
 
 	disk := statistics.Disk{
-		Written: blockStats.WrBytes,
-		Read:    blockStats.RdBytes,
+		WrittenBytes: blockStats.WrBytes,
+		ReadBytes:    blockStats.RdBytes,
 	}
-	stats = statistics.Disks{
-		Disks: []statistics.Disk{
-			disk,
-		},
+	stats = []statistics.Disk{
+		disk,
 	}
 	return
 }
 
-func (dt *Domtop) interfaceStats() (stats statistics.Interfaces, err error) {
+func (dt *Domtop) interfaceStats() (stats []statistics.Interface, err error) {
 	addresses, err := dt.domain.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT)
 	if err != nil {
 		err = fmt.Errorf("could not retrieve domain interface addresses: %v", err)
 		return
 	}
 
-	interfaceStats := make([]statistics.Interface, 0, len(addresses))
+	stats = make([]statistics.Interface, 0, len(addresses))
 	for _, address := range addresses {
 		domainInterfaceStats, err := dt.domain.InterfaceStats(address.Name)
 		if err != nil {
@@ -63,16 +58,13 @@ func (dt *Domtop) interfaceStats() (stats statistics.Interfaces, err error) {
 		}
 
 		interfaceStat := statistics.Interface{
-			Rx:        domainInterfaceStats.RxBytes,
-			Tx:        domainInterfaceStats.TxBytes,
+			RxBytes:   domainInterfaceStats.RxBytes,
+			TxBytes:   domainInterfaceStats.TxBytes,
 			RxPackets: domainInterfaceStats.RxPackets,
 			TxPackets: domainInterfaceStats.TxPackets,
 		}
-		interfaceStats = append(interfaceStats, interfaceStat)
+		stats = append(stats, interfaceStat)
 	}
 
-	stats = statistics.Interfaces{
-		Interfaces: interfaceStats,
-	}
 	return
 }

@@ -4,66 +4,40 @@ type Serializable interface {
 	Serialize() (string, error)
 }
 
-var _ Serializable = ResourceUsage{}
-var _ Serializable = LifecycleEvent{}
-var _ Serializable = GraphicsEvent{}
-var _ Serializable = RebootEvent{}
+var _ Serializable = Usage{}
+var _ Serializable = Event{}
 
-type ResourceUsage struct {
-	CPUs       CPUs `json:"CPU,omitempty"`
-	Disks      Disks
-	Interfaces Interfaces
-}
-
-type CPUs struct {
-	CPUs []CPU `json:"CPU Times,omitempty"`
+type Usage struct {
+	CPUs       []CPU       `json:"cpus,omitempty"`
+	Disks      []Disk      `json:"disks,omitempty"`
+	Interfaces []Interface `json:"interfaces,omitempty"`
 }
 
 type CPU struct {
-	Time uint64
-}
-
-type Disks struct {
-	Disks []Disk
+	Time uint64 `json:"time,omitempty"`
 }
 
 type Disk struct {
-	Written int64
-	Read    int64
-}
-
-type Interfaces struct {
-	Interfaces []Interface
+	WrittenBytes int64 `json:"writen_bytes,omitempty"`
+	ReadBytes    int64 `json:"read_bytes,omitempty"`
 }
 
 type Interface struct {
-	Rx        int64
-	Tx        int64
-	RxPackets int64
-	TxPackets int64
+	RxBytes   int64 `json:"rx_bytes,omitempty"`
+	TxBytes   int64 `json:"tx_bytes,omitempty"`
+	RxPackets int64 `json:"rx_packets,omitempty"`
+	TxPackets int64 `json:"tx_packets,omitempty"`
 }
 
-func (r ResourceUsage) Serialize() (string, error) {
+func (u Usage) Serialize() (string, error) {
 	panic("unimplemented")
 }
 
-type LifecycleEvent struct {
+type Event struct {
+	Type       string         `json:"type,omitempty"`
+	Parameters map[string]any `json:"parameters,omitempty"`
 }
 
-func (l LifecycleEvent) Serialize() (string, error) {
-	panic("unimplemented")
-}
-
-type GraphicsEvent struct {
-}
-
-func (g GraphicsEvent) Serialize() (string, error) {
-	panic("unimplemented")
-}
-
-type RebootEvent struct {
-}
-
-func (r RebootEvent) Serialize() (string, error) {
+func (e Event) Serialize() (string, error) {
 	panic("unimplemented")
 }
