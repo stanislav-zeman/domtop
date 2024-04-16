@@ -1,5 +1,7 @@
 package statistics
 
+import "encoding/json"
+
 type Serializable interface {
 	Serialize() (string, error)
 }
@@ -28,6 +30,12 @@ type Interface struct {
 	TxPackets int64 `json:"tx_packets,omitempty"`
 }
 
-func (u Usage) Serialize() (string, error) {
-	panic("unimplemented")
+func (u Usage) Serialize() (data string, err error) {
+	bytes, err := json.Marshal(u)
+	if err != nil {
+		return
+	}
+
+	data = string(bytes)
+	return
 }

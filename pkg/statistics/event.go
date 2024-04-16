@@ -1,5 +1,7 @@
 package statistics
 
+import "encoding/json"
+
 var _ Serializable = Event{}
 
 type Event struct {
@@ -7,6 +9,12 @@ type Event struct {
 	Parameters map[string]any `json:"parameters,omitempty"`
 }
 
-func (e Event) Serialize() (string, error) {
-	panic("unimplemented")
+func (e Event) Serialize() (data string, err error) {
+	bytes, err := json.Marshal(e)
+	if err != nil {
+		return
+	}
+
+	data = string(bytes)
+	return
 }
