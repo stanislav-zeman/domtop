@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/stanislav-zeman/domtop/pkg/config"
 	"github.com/stanislav-zeman/domtop/pkg/statistics"
 	"libvirt.org/go/libvirt"
 )
@@ -17,13 +18,14 @@ type Domtop struct {
 	exporterChan chan<- statistics.Serializable
 }
 
-func New(config Config, exporterChan chan<- statistics.Serializable) (domtop *Domtop, err error) {
-	connection, err := libvirt.NewConnect("qemu:///system")
+func New(cfg config.Config, exporterChan chan<- statistics.Serializable) (domtop *Domtop, err error) {
+	connection, err := libvirt.NewConnect(cfg.HypervisorURL)
 	if err != nil {
 		err = fmt.Errorf("could not connect to hypervisor: %v", err)
 		return
 	}
 
+	slog.Info("libvirt connection established", "component", "domtop")
 	domains, err := connection.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
 	if err != nil {
 		return
@@ -31,7 +33,7 @@ func New(config Config, exporterChan chan<- statistics.Serializable) (domtop *Do
 
 	domtop = &Domtop{
 		libvirt:      connection,
-		refreshTimer: time.NewTicker(config.RefreshPeriod),
+		refreshTimer: time.NewTicker(cfg.RefreshPeriod),
 		exporterChan: exporterChan,
 	}
 	for _, domain := range domains {
@@ -41,7 +43,7 @@ func New(config Config, exporterChan chan<- statistics.Serializable) (domtop *Do
 			continue
 		}
 
-		if name == config.Domain {
+		if name == cfg.DomainName {
 			domtop.domain = &domain
 			continue
 		}
@@ -50,7 +52,7 @@ func New(config Config, exporterChan chan<- statistics.Serializable) (domtop *Do
 	}
 
 	if domtop.domain == nil {
-		err = fmt.Errorf("could not find specified domain '%s'", config.Domain)
+		err = fmt.Errorf("could not find specified domain '%s'", cfg.DomainName)
 		return
 	}
 
@@ -61,6 +63,7 @@ func New(config Config, exporterChan chan<- statistics.Serializable) (domtop *Do
 }
 
 func (dt *Domtop) Run(ctx context.Context) error {
+	slog.Info("started domtop")
 	for {
 		select {
 		case <-dt.refreshTimer.C:

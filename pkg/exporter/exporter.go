@@ -24,6 +24,7 @@ func New(file *os.File, dataChan <-chan statistics.Serializable) Exporter {
 }
 
 func (e Exporter) Run(ctx context.Context) {
+	slog.Info("started exporter", "component", "exporter")
 	for {
 		select {
 		case statistics, ok := <-e.statisticsChan:

@@ -9,12 +9,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/stanislav-zeman/domtop/pkg/config"
 	"github.com/stanislav-zeman/domtop/pkg/domtop"
 	"github.com/stanislav-zeman/domtop/pkg/exporter"
 	"github.com/stanislav-zeman/domtop/pkg/statistics"
 )
 
 var period = flag.String("time", "1s", "domtop refresh period")
+var hypervisorURL = flag.String("hypervisor-url", "qemu:///system", "libvirt hypervisor url")
 
 func main() {
 	config, err := parseArgs()
@@ -41,19 +43,20 @@ func main() {
 	}
 }
 
-func parseArgs() (config domtop.Config, err error) {
+func parseArgs() (cfg config.Config, err error) {
 	if len(os.Args) < 2 {
 		err = errors.New("missing domain name argument")
 		return
 	}
 
-	config.Domain = os.Args[1]
+	cfg.DomainName = os.Args[1]
 	refreshPeriod, err := time.ParseDuration(*period)
 	if err != nil {
 		err = fmt.Errorf("could not parse time argument: %v", err)
 		return
 	}
 
-	config.RefreshPeriod = refreshPeriod
+	cfg.RefreshPeriod = refreshPeriod
+	cfg.HypervisorURL = *hypervisorURL
 	return
 }

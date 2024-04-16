@@ -1,10 +1,11 @@
-package domtop
+package config
 
 import (
 	"time"
 )
 
 type Config struct {
-	Domain        string
+	HypervisorURL string
+	DomainName    string
 	RefreshPeriod time.Duration
 }
