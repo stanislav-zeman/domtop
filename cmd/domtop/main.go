@@ -2,39 +2,57 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
-	"log"
+	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
 	"github.com/stanislav-zeman/domtop/pkg/domtop"
+	"github.com/stanislav-zeman/domtop/pkg/exporter"
 )
 
 var period = flag.String("time", "1s", "domtop refresh period")
 
 func main() {
-	config := parseArgs()
-	domtop := domtop.NewDomtop(config)
+	config, err := parseArgs()
+	if err != nil {
+		slog.Error("could not parse command line arguments", "error", err)
+		os.Exit(1)
+	}
+
+	statisticsChan := make(chan exporter.Serializable, 32)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	err := domtop.Run(ctx)
+	exporter := exporter.New(os.Stdout, statisticsChan)
+	exporter.Run(ctx)
+	domtop, err := domtop.New(config, statisticsChan)
 	if err != nil {
-		log.Fatalf("failed running domtop: %v", err)
+		slog.Error("could not start domtop", "error", err)
+		os.Exit(1)
+	}
+
+	err = domtop.Run(ctx)
+	if err != nil {
+		slog.Error("failed running domtop", "error", err)
+		os.Exit(1)
 	}
 }
 
-func parseArgs() domtop.Config {
-	config := domtop.Config{}
+func parseArgs() (config domtop.Config, err error) {
 	if len(os.Args) < 2 {
-		log.Fatal("missing domain name argument")
+		err = errors.New("missing domain name argument")
+		return
 	}
 
 	config.Domain = os.Args[1]
 	refreshPeriod, err := time.ParseDuration(*period)
 	if err != nil {
-		log.Fatalf("could not parse time argument: %v", err)
+		err = fmt.Errorf("could not parse time argument: %v", err)
+		return
 	}
 
 	config.RefreshPeriod = refreshPeriod
-	return config
+	return
 }
