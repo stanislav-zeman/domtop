@@ -1,11 +1,23 @@
 package statistics
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 var _ Serializable = Event{}
 
+type EventType string
+
+const (
+	LifecycleEvenType = "lifecycle"
+	GraphicsEventType = "graphics"
+	RebootEventType   = "reboot"
+)
+
 type Event struct {
-	Type       string         `json:"type,omitempty"`
+	Type       EventType      `json:"type,omitempty"`
+	Time       time.Time      `json:"time,omitempty"`
 	Parameters map[string]any `json:"parameters,omitempty"`
 }
 
