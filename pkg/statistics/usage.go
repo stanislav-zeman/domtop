@@ -5,7 +5,6 @@ type Serializable interface {
 }
 
 var _ Serializable = Usage{}
-var _ Serializable = Event{}
 
 type Usage struct {
 	CPUs       []CPU       `json:"cpus,omitempty"`
@@ -30,14 +29,5 @@ type Interface struct {
 }
 
 func (u Usage) Serialize() (string, error) {
-	panic("unimplemented")
-}
-
-type Event struct {
-	Type       string         `json:"type,omitempty"`
-	Parameters map[string]any `json:"parameters,omitempty"`
-}
-
-func (e Event) Serialize() (string, error) {
 	panic("unimplemented")
 }
