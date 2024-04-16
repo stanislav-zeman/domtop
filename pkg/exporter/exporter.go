@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/stanislav-zeman/domtop/pkg/statistics"
 )
@@ -24,7 +25,7 @@ func New(file *os.File, dataChan <-chan statistics.Serializable) Exporter {
 }
 
 func (e Exporter) Run(ctx context.Context) {
-	slog.Info("started exporter", "component", "exporter")
+	slog.Info("started exporter")
 	for {
 		select {
 		case statistics, ok := <-e.statisticsChan:
@@ -38,7 +39,7 @@ func (e Exporter) Run(ctx context.Context) {
 				continue
 			}
 
-			fmt.Fprintf(os.Stdout, data)
+			fmt.Fprintf(os.Stdout, "%s: %s\n", time.Now().Format("15:04:05"), data)
 
 		case <-ctx.Done():
 		}
