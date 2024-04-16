@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+
+	"github.com/stanislav-zeman/domtop/pkg/statistics"
 )
 
 type Exporter struct {
 	file           *os.File
-	statisticsChan <-chan Serializable
+	statisticsChan <-chan statistics.Serializable
 }
 
-func New(file *os.File, dataChan <-chan Serializable) Exporter {
+func New(file *os.File, dataChan <-chan statistics.Serializable) Exporter {
 	exporter := Exporter{
 		file:           file,
 		statisticsChan: dataChan,

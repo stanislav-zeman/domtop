@@ -11,6 +11,7 @@ import (
 
 	"github.com/stanislav-zeman/domtop/pkg/domtop"
 	"github.com/stanislav-zeman/domtop/pkg/exporter"
+	"github.com/stanislav-zeman/domtop/pkg/statistics"
 )
 
 var period = flag.String("time", "1s", "domtop refresh period")
@@ -22,7 +23,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	statisticsChan := make(chan exporter.Serializable, 32)
+	statisticsChan := make(chan statistics.Serializable, 32)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	exporter := exporter.New(os.Stdout, statisticsChan)

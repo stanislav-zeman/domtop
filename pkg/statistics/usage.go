@@ -1,4 +1,4 @@
-package exporter
+package statistics
 
 type Serializable interface {
 	Serialize() (string, error)
@@ -10,9 +10,37 @@ var _ Serializable = GraphicsEvent{}
 var _ Serializable = RebootEvent{}
 
 type ResourceUsage struct {
-	CPUS    uint `json:"cpus,omitempty"`
-	Discs   uint `json:"discs,omitempty"`
-	Network uint `json:"network,omitempty"`
+	CPUs       CPUs `json:"CPU,omitempty"`
+	Disks      Disks
+	Interfaces Interfaces
+}
+
+type CPUs struct {
+	CPUs []CPU `json:"CPU Times,omitempty"`
+}
+
+type CPU struct {
+	Time uint64
+}
+
+type Disks struct {
+	Disks []Disk
+}
+
+type Disk struct {
+	Written int64
+	Read    int64
+}
+
+type Interfaces struct {
+	Interfaces []Interface
+}
+
+type Interface struct {
+	Rx        int64
+	Tx        int64
+	RxPackets int64
+	TxPackets int64
 }
 
 func (r ResourceUsage) Serialize() (string, error) {
