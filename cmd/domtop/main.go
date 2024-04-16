@@ -3,20 +3,17 @@ package main
 import (
 	"context"
 	"errors"
-	"flag"
 	"fmt"
 	"log/slog"
 	"os"
 	"time"
 
+	"github.com/spf13/pflag"
 	"github.com/stanislav-zeman/domtop/pkg/config"
 	"github.com/stanislav-zeman/domtop/pkg/domtop"
 	"github.com/stanislav-zeman/domtop/pkg/exporter"
 	"github.com/stanislav-zeman/domtop/pkg/statistics"
 )
-
-var period = flag.String("time", "1s", "domtop refresh period")
-var hypervisorURL = flag.String("hypervisor-url", "qemu:///system", "libvirt hypervisor url")
 
 func main() {
 	config, err := parseArgs()
@@ -29,21 +26,20 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	exporter := exporter.New(os.Stdout, statisticsChan)
-	exporter.Run(ctx)
+	go exporter.Run(ctx)
 	domtop, err := domtop.New(config, statisticsChan)
 	if err != nil {
 		slog.Error("could not start domtop", "error", err)
 		os.Exit(1)
 	}
 
-	err = domtop.Run(ctx)
-	if err != nil {
-		slog.Error("failed running domtop", "error", err)
-		os.Exit(1)
-	}
+	domtop.Run(ctx)
 }
 
 func parseArgs() (cfg config.Config, err error) {
+	period := pflag.String("time", "1s", "domtop refresh period")
+	hypervisorURL := pflag.String("hypervisor-url", "qemu:///system", "libvirt hypervisor url")
+	pflag.Parse()
 	if len(os.Args) < 2 {
 		err = errors.New("missing domain name argument")
 		return
