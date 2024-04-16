@@ -10,7 +10,7 @@ import (
 	"github.com/stanislav-zeman/domtop/pkg/domtop"
 )
 
-var period = flag.String("period", "1s", "help")
+var period = flag.String("time", "1s", "domtop refresh period")
 
 func main() {
 	config := parseArgs()

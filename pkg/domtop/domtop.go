@@ -20,8 +20,10 @@ func (dt *Domtop) Run(ctx context.Context) error {
 		select {
 		case <-dt.refreshTimer.C:
 			dt.refresh()
+
 		case <-ctx.Done():
 			return nil
+
 		}
 	}
 }
