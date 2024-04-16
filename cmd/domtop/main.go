@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"time"
@@ -9,27 +10,31 @@ import (
 	"github.com/stanislav-zeman/domtop/pkg/domtop"
 )
 
-const defaultRefreshTime = time.Second
+var period = flag.String("period", "1s", "help")
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("could not start domtop: missing domain name argument")
-	}
-
-	refreshTime := defaultRefreshTime
-	if len(os.Args) > 2 {
-		var err error
-		refreshTime, err = time.ParseDuration(os.Args[2])
-		if err != nil {
-			log.Fatalf("could not parse time argument: %v", err)
-		}
-	}
-
-	domain := os.Args[1]
-	dt := domtop.NewDomtop(domain, refreshTime)
-	ctx := context.Background()
-	err := dt.Run(ctx)
+	config := parseArgs()
+	domtop := domtop.NewDomtop(config)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	err := domtop.Run(ctx)
 	if err != nil {
 		log.Fatalf("failed running domtop: %v", err)
 	}
+}
+
+func parseArgs() domtop.Config {
+	config := domtop.Config{}
+	if len(os.Args) < 2 {
+		log.Fatal("missing domain name argument")
+	}
+
+	config.Domain = os.Args[1]
+	refreshPeriod, err := time.ParseDuration(*period)
+	if err != nil {
+		log.Fatalf("could not parse time argument: %v", err)
+	}
+
+	config.RefreshPeriod = refreshPeriod
+	return config
 }

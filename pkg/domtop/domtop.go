@@ -9,9 +9,9 @@ type Domtop struct {
 	refreshTimer *time.Ticker
 }
 
-func NewDomtop(domain string, refreshTime time.Duration) *Domtop {
+func NewDomtop(config Config) *Domtop {
 	return &Domtop{
-		refreshTimer: time.NewTicker(refreshTime),
+		refreshTimer: time.NewTicker(config.RefreshPeriod),
 	}
 }
 
