@@ -9,7 +9,7 @@ type Domtop struct {
 	refreshTimer *time.Ticker
 }
 
-func NewDomtop(config Config) *Domtop {
+func New(config Config) *Domtop {
 	return &Domtop{
 		refreshTimer: time.NewTicker(config.RefreshPeriod),
 	}
