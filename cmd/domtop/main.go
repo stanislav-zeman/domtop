@@ -38,7 +38,7 @@ func main() {
 
 func parseArgs() (cfg config.Config, err error) {
 	period := pflag.String("time", "1s", "domtop refresh period")
-	hypervisorURL := pflag.String("hypervisor-url", "qemu:///system", "libvirt hypervisor url")
+	hypervisorURI := pflag.String("hypervisor-uri", "qemu:///system", "libvirt hypervisor uri")
 	pflag.Parse()
 	if len(os.Args) < 2 {
 		err = errors.New("missing domain name argument")
@@ -53,6 +53,6 @@ func parseArgs() (cfg config.Config, err error) {
 	}
 
 	cfg.RefreshPeriod = refreshPeriod
-	cfg.HypervisorURL = *hypervisorURL
+	cfg.HypervisorURI = *hypervisorURI
 	return
 }

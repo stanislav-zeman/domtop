@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	HypervisorURL string
+	HypervisorURI string
 	DomainName    string
 	RefreshPeriod time.Duration
 }

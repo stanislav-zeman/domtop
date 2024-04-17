@@ -19,8 +19,8 @@ type Domtop struct {
 }
 
 func New(cfg config.Config, exporterChan chan<- statistics.Serializable) (domtop *Domtop, err error) {
-	slog.Info("connecting to libvirt hypervisor", "hypervisorURL", cfg.HypervisorURL)
-	connection, err := libvirt.NewConnect(cfg.HypervisorURL)
+	slog.Debug("connecting to libvirt hypervisor", "hypervisorURI", cfg.HypervisorURI)
+	connection, err := libvirt.NewConnect(cfg.HypervisorURI)
 	if err != nil {
 		err = fmt.Errorf("could not connect to hypervisor: %v", err)
 		return
