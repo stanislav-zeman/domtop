@@ -19,6 +19,12 @@ type Domtop struct {
 }
 
 func New(cfg config.Config, exporterChan chan<- statistics.Serializable) (domtop *Domtop, err error) {
+	err = libvirt.EventRegisterDefaultImpl()
+	if err != nil {
+		err = fmt.Errorf("could not register event loop: %v", err)
+		return
+	}
+
 	slog.Debug("connecting to libvirt hypervisor", "hypervisorURI", cfg.HypervisorURI)
 	connection, err := libvirt.NewConnect(cfg.HypervisorURI)
 	if err != nil {
@@ -46,6 +52,7 @@ func New(cfg config.Config, exporterChan chan<- statistics.Serializable) (domtop
 
 func (dt *Domtop) Run(ctx context.Context) {
 	slog.Info("started domtop")
+	go dt.runEventLoop(ctx)
 	for {
 		select {
 		case <-dt.refreshTimer.C:
@@ -61,6 +68,24 @@ func (dt *Domtop) Run(ctx context.Context) {
 func (dt *Domtop) Close() {
 	dt.domain.Free()
 	dt.libvirt.Close()
+}
+
+func (dt *Domtop) runEventLoop(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+
+		default:
+			err := libvirt.EventRunDefaultImpl()
+			if err != nil {
+				slog.Error("could not run event loop", "error", err)
+				return
+			}
+
+			slog.Debug("received event")
+		}
+	}
 }
 
 func (dt *Domtop) refresh() {
